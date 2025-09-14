@@ -1,22 +1,28 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message
-from datetime import datetime
-import pandas as pd
+
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+
 import asyncio
-import os
 
 import spaceflightnews as sfn
 import finance as fin
 import weather as wt
 import logger as lg
+
 from key import TOKEN
 
 
 global USERNAME
 
+class WeatherState(StatesGroup):
+    waiting_for_city = State()
+
 bot = Bot(TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(storage=MemoryStorage())
 
 @dp.message(Command("start"))
 @lg.logging
@@ -35,12 +41,21 @@ async def start(msg: Message):
         reply_markup=keyboard
     )
 
+@dp.message(WeatherState.waiting_for_city)
+@lg.logging
+async def process_city(msg: Message, state: FSMContext):
+    city = msg.text
+    weather_info = wt.get_weather(city)
+    await msg.answer(weather_info)
+    await state.clear()
+
 @dp.message()
 @lg.logging
-async def handle_buttons(msg: Message):
+async def handle_buttons(msg: Message, state: FSMContext):
     text = msg.text
     if text == "☁️Данные о погоде☀️":
-        return await msg.answer(wt.get_weather())
+        await msg.answer("Введите название города:")
+        await state.set_state(WeatherState.waiting_for_city)
     elif text == "🚀Информация о событиях в сфере космических полётов":
         return await msg.answer(sfn.get_spaceflight_summary())
     elif text == "💲Курс доллара💵":

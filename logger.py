@@ -24,7 +24,12 @@ def logging(func):
             result = await func(*args, **kwargs)
 
             if motion == "API":
-                api_answer = result.text if result and hasattr(result, "text") else "No response"
+                if isinstance(result, str):
+                    api_answer = result
+                elif result and hasattr(result, "text"):
+                    api_answer = result.text
+                else:
+                    api_answer = "No response"
             else:
                 api_answer = "NONE"
 
@@ -43,7 +48,12 @@ def logging(func):
             result = func(*args, **kwargs)
 
             if motion == "API":
-                api_answer = result.text if result and hasattr(result, "text") else "No response"
+                if isinstance(result, str):
+                    api_answer = result
+                elif result and hasattr(result, "text"):
+                    api_answer = result.text
+                else:
+                    api_answer = "No response"
             else:
                 api_answer = "NONE"
 
