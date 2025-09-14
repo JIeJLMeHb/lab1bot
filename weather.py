@@ -3,49 +3,13 @@ import asyncio
 import json
 
 
-def get_weather(location=""):
-    url = f"https://wttr.in/{location}"
+def get_weather(location="Минск"):
+    url = f"https://wttr.in/{location}?format=j1"
     try:
         response = requests.get(url)
         response.raise_for_status()
-        return response.text
+        data = response.json()
+        return "В городе Минск на момент " + str(data["current_condition"][0]["observation_time"]) + " температура равна " + str(data["current_condition"][0]["temp_C"]) + " градус Цельсия, ощущается как " + str(data["current_condition"][0]["FeelsLikeC"]) + ". Влажность воздуха: " + str(data["current_condition"][0]["humidity"]) + "%, UV-индекс: " + str(data["current_condition"][0]["uvIndex"])
+
     except requests.exceptions.RequestException as e:
         return f"Ошибка получения данных о погоде: {e}"
-
-"""
-Использование:
-
-    $ curl wttr.in          # текущее местоположение
-    $ curl wttr.in/svo      # погода в аэропорту Шереметьево (код ICAO: SVO)
-
-Поддерживаемые типы местоположений:
-
-    /paris                  # город
-    /~Eiffel+tower          # любое местоположение
-    /Москва                 # юникодное имя любого местоположения на любом языке
-    /muc                    # код аэропорта ICAO (3 буквы)
-    /@stackoverflow.com     # доменное имя
-    /94107                  # почтовый индекс (только для США)
-    /-78.46,106.79          # GPS-координаты
-
-Специальные условные местоположения:
-
-    /moon                   # Фаза Луны (добавьте ,+US или ,+France для города Moon в США/Франции)
-    /moon@2016-10-25        # Фаза Луны для указанной даты (@2016-10-25)
-
-Единицы измерений:
-
-    ?m                      # метрические (СИ) (используются везде кроме США)
-    ?u                      # USCS (используются в США)
-    ?M                      # показывать скорость ветра в м/с
-
-Опции отображения:
-
-    ?0                      # только текущая погода
-    ?1                      # погода сегодня + 1 день
-    ?2                      # погода сегодня + 2 дня
-    ?n                      # узкая версия (только день и ночь)
-    ?q                      # тихая версия (без текста "Прогноз погоды")
-    ?Q                      # сверхтихая версия (без "Прогноз погоды", нет названия города)
-    ?T                      # отключить терминальные последовательности (без цветов)
-"""
