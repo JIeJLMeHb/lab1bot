@@ -2,9 +2,11 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+import aiohttp
 
 import asyncio
 
@@ -16,17 +18,19 @@ import logger as lg
 from key import TOKEN
 
 
-global USERNAME
-
 class WeatherState(StatesGroup):
     waiting_for_city = State()
 
-bot = Bot(TOKEN)
+session = AiohttpSession()
+session._connector_init = {'ssl': False}
+
+bot = Bot(TOKEN, session=session)
 dp = Dispatcher(storage=MemoryStorage())
 
 @dp.message(Command("start"))
 @lg.logging
 async def start(msg: Message):
+    print("bot started!")
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton(text="☁️Данные о погоде☀️")],
@@ -35,9 +39,8 @@ async def start(msg: Message):
         ],
         resize_keyboard=True
     )
-    USERNAME = msg.from_user.first_name
     return await msg.reply(
-        f"Здраствуйте, {USERNAME}! Выберите действие из кнопочек снизу:",
+        f"Здраствуйте, {msg.from_user.first_name}! Выберите действие из кнопочек снизу:",
         reply_markup=keyboard
     )
 
